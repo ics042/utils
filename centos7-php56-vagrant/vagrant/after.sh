@@ -126,7 +126,3 @@ MYSQL=`which mysql`
 $MYSQL -uroot -p$MYSQL_ROOT_PASSWORD -e "$SQL"
 
 sudo systemctl restart mysqld
-
-echo -e "\n---Migrate db data ---\n"
-cd /vagrant/www
-php yii migrate/up --interactive=0
