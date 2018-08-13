@@ -83,7 +83,7 @@
     <!-- Make tar file -->
     <target name="tar" depends="check" description="Create tar file for release">
         <tar destfile="${distfile}" compression="gzip">
-            <!-- 指定id为test_tar的fileset -->
+            <!-- id is test_tar -->
             <fileset refid="test_tar"/>
         </tar>
     </target>
