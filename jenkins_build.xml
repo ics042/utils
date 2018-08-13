@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="test" default="build">
+    <!-- Build target, will run targets one by one -->
+    <target name="build" depends="clean,make_dir,phpcpd,phploc,phpdcd,phpcs,phpunit,tar"/>
+ 
+    <!-- Define properties -->
+    <property name="tarfile"     value="${phing.project.name}.${buildnumber}.${buildid}.tar.gz" />
+    <property name="distfile"    value="dist/${tarfile}" />
+    <property name="tests.dir" value="tests" />
+   
+    <!-- Delete old directories -->
+    <target name="clean" description="Delete some old dir">
+        <delete dir="${project.basedir}/build"  failonerror="false" />
+        <delete dir="dist" failonerror="false" />
+    </target>
+ 
+    <!-- Create new directories -->
+    <target name="make_dir">
+        <mkdir dir="${project.basedir}/build" />
+        <mkdir dir="${project.basedir}/dist" />
+    </target>
+ 
+    <!-- Run phpdcd -->
+    <target name="phpdcd" description="Check the code that never be used">
+        <!-- phpdcd need to be run under /usr/bin/ -->
+        <!-- run "phpdcd ./", output to build/phpdcd.txt -->
+        <exec command="phpdcd ./" dir="${project.basedir}" output="${project.basedir}/build/phpdcd.txt" />
+ 
+        <!-- output from console done -->
+        <echo msg="done!"/>
+    </target>
+ 
+    <!-- Run phpcs -->
+    <target name="phpcs" description="Check the coding standards">
+        <exec command="phpcs ./" dir="${project.basedir}" output="${project.basedir}/build/phpcs.txt" />
+ 
+        <echo msg="done!"/>
+    </target>
+ 
+    <!-- Run phploc -->
+    <target name="phploc" description="Measure project size using PHPLOC">
+        <!-- output to build/phploc.xml, pharlocation is the location of phar -->
+        <phploc reportType="xml" reportName="phploc" reportDirectory="${project.basedir}/build/" pharlocation="/usr/local/bin/phploc">
+            <!-- set php files will be calculated -->
+            <fileset dir="${project.basedir}">
+                <include name="**/*.php"/>
+            </fileset>
+        </phploc>
+ 
+        <echo msg="done!"/>
+    </target>
+ 
+    <!-- Run phpcpd -->
+    <target name="phpcpd" description="Find duplicate code using PHPCPD">
+        <phpcpd pharlocation="/usr/bin/phpcpd">
+            <fileset dir="${project.basedir}">
+                <include name="*.php"/>
+            </fileset>
+            <!-- output to build/phpcpd.xml -->
+            <formatter type="pmd" outfile="build/phpcpd.xml"/>
+        </phpcpd>
+ 
+        <echo msg="done!"/>
+    </target>
+ 
+    <!-- Run phpunit -->
+    <target name="phpunit" description="Run PHPUnit tests">
+        <phpunit haltonerror="true" haltonfailure="true" printsummary="true"  pharlocation="/usr/local/bin/phpunit">
+        <batchtest>
+        <fileset dir="${tests.dir}">
+            <include name="**/*Test.php" />
+        </fileset>
+        </batchtest>
+        </phpunit>
+    </target>
+ 
+    <!-- Check if properties valid -->
+    <target name="check" description="Check variables" >
+        <fail unless="buildnumber" message="buildnumber not defined!" />
+        <fail unless="buildid" message="buildid not defined!" />
+    </target>
+ 
+    <!-- Make tar file -->
+    <target name="tar" depends="check" description="Create tar file for release">
+        <tar destfile="${distfile}" compression="gzip">
+            <!-- 指定id为test_tar的fileset -->
+            <fileset refid="test_tar"/>
+        </tar>
+    </target>
+ 
+    <fileset id="test_tar" dir=".">
+        <include name="tests/**"/>
+        <include name="assets/**"/>
+        <include name="js/**"/>
+        <include name="css/**"/>
+        <include name="images/**"/>
+        <include name="*.php"/>
+    </fileset>
+</project>
